@@ -1,0 +1,1 @@
+/usr/lib/ccache/c++  -Wall -mavx2 -mfma -g -O3 -ffast-math -fopenmp   CMakeFiles/out.dir/matmul.cpp.o  -o out  /usr/local/lib/libbenchmark.a -lpthread -lrt 

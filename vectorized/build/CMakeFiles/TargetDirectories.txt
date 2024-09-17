@@ -1,0 +1,3 @@
+/home/ducb/Documents/C++/matmul_perf/vectorized/build/CMakeFiles/rebuild_cache.dir
+/home/ducb/Documents/C++/matmul_perf/vectorized/build/CMakeFiles/edit_cache.dir
+/home/ducb/Documents/C++/matmul_perf/vectorized/build/CMakeFiles/out.dir
