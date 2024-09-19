@@ -99,7 +99,26 @@ void matMul(T *matA, T *matB, T *matC, int M, int N, int K) {
 				c22 = svmad_f32(svptrue_b32(), a3, b2, c32);
 				c23 = svmad_f32(svptrue_b32(), a3, b3, c33);
 			}
+		// Store the values to matC
+		svst1_f32(svptrue_b32(), matC[(i + 0) * N + j + 0], svsaddv_f32(svptrue_b32(), c00));
+		svst1_f32(svptrue_b32(), matC[(i + 0) * N + j + 1], svsaddv_f32(svptrue_b32(), c01));
+		svst1_f32(svptrue_b32(), matC[(i + 0) * N + j + 2], svsaddv_f32(svptrue_b32(), c02));
+		svst1_f32(svptrue_b32(), matC[(i + 0) * N + j + 3], svsaddv_f32(svptrue_b32(), c03));
 
+		svst1_f32(svptrue_b32(), matC[(i + 1) * N + j + 0], svsaddv_f32(svptrue_b32(), c10));
+		svst1_f32(svptrue_b32(), matC[(i + 1) * N + j + 1], svsaddv_f32(svptrue_b32(), c11));
+		svst1_f32(svptrue_b32(), matC[(i + 1) * N + j + 2], svsaddv_f32(svptrue_b32(), c12));
+		svst1_f32(svptrue_b32(), matC[(i + 1) * N + j + 3], svsaddv_f32(svptrue_b32(), c13));
+
+		svst1_f32(svptrue_b32(), matC[(i + 2) * N + j + 0], svsaddv_f32(svptrue_b32(), c20));
+		svst1_f32(svptrue_b32(), matC[(i + 2) * N + j + 1], svsaddv_f32(svptrue_b32(), c21));
+		svst1_f32(svptrue_b32(), matC[(i + 2) * N + j + 2], svsaddv_f32(svptrue_b32(), c22));
+		svst1_f32(svptrue_b32(), matC[(i + 2) * N + j + 3], svsaddv_f32(svptrue_b32(), c23));
+
+		svst1_f32(svptrue_b32(), matC[(i + 3) * N + j + 0], svsaddv_f32(svptrue_b32(), c30));
+		svst1_f32(svptrue_b32(), matC[(i + 3) * N + j + 1], svsaddv_f32(svptrue_b32(), c31));
+		svst1_f32(svptrue_b32(), matC[(i + 3) * N + j + 2], svsaddv_f32(svptrue_b32(), c32));
+		svst1_f32(svptrue_b32(), matC[(i + 3) * N + j + 3], svsaddv_f32(svptrue_b32(), c33));
 		}
 	}
 }
