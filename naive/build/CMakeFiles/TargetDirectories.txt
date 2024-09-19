@@ -1,3 +1,0 @@
-/home/ducb/Documents/C++/matmul_perf/naive/build/CMakeFiles/rebuild_cache.dir
-/home/ducb/Documents/C++/matmul_perf/naive/build/CMakeFiles/edit_cache.dir
-/home/ducb/Documents/C++/matmul_perf/naive/build/CMakeFiles/out.dir

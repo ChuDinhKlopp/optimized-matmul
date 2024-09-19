@@ -1,1 +1,0 @@
-/usr/lib/ccache/c++  -Wall -mavx -O3 -march=native -ffast-math   CMakeFiles/out.dir/matmul.cpp.o  -o out  /usr/local/lib/libbenchmark.a -lpthread -lrt 
