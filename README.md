@@ -1,1 +1,3 @@
 # optimized-matmul
+
+- Optimized matrix multiplication on the quad-core ARM Cortex-A72 CPU integrated in Raspberry Pi 4. This project utilizes various parallel programming techniques, including loop unrolling, Message Passing Interface (MPI), and SVE intrinsics provided by the ARMv8 instruction set. The benchmarking results will be updated in the future.
