@@ -46,28 +46,29 @@ void transposeMat(T **mat, int rows, int cols) {
 	*mat = tmp;
 }
 
+template<typename T>
 void matMul(T *matA, T *matB, T *matC, int M, int N, int K) {
 	int i, j, k;
 
 #pragma omp parallel for collapse(2)
 	for (i = 0; i < M; i += 4) {
 		for (j = 0; j < N; j += 4) {
-			float32x4_t c00 = vdup_n_f32(0.0f);
-			float32x4_t c01 = vdup_n_f32(0.0f);
-			float32x4_t c02 = vdup_n_f32(0.0f);
-			float32x4_t c03 = vdup_n_f32(0.0f);
-			float32x4_t c10 = vdup_n_f32(0.0f);
-			float32x4_t c11 = vdup_n_f32(0.0f);
-			float32x4_t c12 = vdup_n_f32(0.0f);
-			float32x4_t c13 = vdup_n_f32(0.0f);
-			float32x4_t c20 = vdup_n_f32(0.0f);
-			float32x4_t c21 = vdup_n_f32(0.0f);
-			float32x4_t c22 = vdup_n_f32(0.0f);
-			float32x4_t c23 = vdup_n_f32(0.0f);
-			float32x4_t c30 = vdup_n_f32(0.0f);
-			float32x4_t c31 = vdup_n_f32(0.0f);
-			float32x4_t c32 = vdup_n_f32(0.0f);
-			float32x4_t c33 = vdup_n_f32(0.0f);
+			float32x4_t c00 = vdupq_n_f32(0.0f);
+			float32x4_t c01 = vdupq_n_f32(0.0f);
+			float32x4_t c02 = vdupq_n_f32(0.0f);
+			float32x4_t c03 = vdupq_n_f32(0.0f);
+			float32x4_t c10 = vdupq_n_f32(0.0f);
+			float32x4_t c11 = vdupq_n_f32(0.0f);
+			float32x4_t c12 = vdupq_n_f32(0.0f);
+			float32x4_t c13 = vdupq_n_f32(0.0f);
+			float32x4_t c20 = vdupq_n_f32(0.0f);
+			float32x4_t c21 = vdupq_n_f32(0.0f);
+			float32x4_t c22 = vdupq_n_f32(0.0f);
+			float32x4_t c23 = vdupq_n_f32(0.0f);
+			float32x4_t c30 = vdupq_n_f32(0.0f);
+			float32x4_t c31 = vdupq_n_f32(0.0f);
+			float32x4_t c32 = vdupq_n_f32(0.0f);
+			float32x4_t c33 = vdupq_n_f32(0.0f);
 			for (k = 0; k < K; k += 4) {
 				float32x4_t b0 = vld1q_f32(matB + (j + 0) * K + k);
 				float32x4_t b1 = vld1q_f32(matB + (j + 0) * K + k);
@@ -93,10 +94,10 @@ void matMul(T *matA, T *matB, T *matC, int M, int N, int K) {
 				c23 = vfmaq_f32(a2, b3, c23);
 
 				float32x4_t a3 = vld1q_f32(matA + (i + 3) * K + k);
-				c20 = vld1q_f32(a3, b0, c30);
-				c21 = vld1q_f32(a3, b1, c31);
-				c22 = vld1q_f32(a3, b2, c32);
-				c23 = vld1q_f32(a3, b3, c33);
+				c20 = vfmaq_f32(a3, b0, c30);
+				c21 = vfmaq_f32(a3, b1, c31);
+				c22 = vfmaq_f32(a3, b2, c32);
+				c23 = vfmaq_f32(a3, b3, c33);
 			}
 		// Store the values to matC
 		matC[(i + 0) * N + j + 0] = vaddvq_f32(c00);
