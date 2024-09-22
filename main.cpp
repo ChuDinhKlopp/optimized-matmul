@@ -5,6 +5,7 @@
 #include <math.h>
 #include <omp.h>
 #include <chrono>
+#include <mpi.h>
 
 template<typename T>
 void zeroMat(T *mat, int rows, int cols) {
@@ -124,23 +125,54 @@ void matMul(T *matA, T *matB, T *matC, int M, int N, int K) {
 }
 
 int main() {
+	MPI_Init(NULL, NULL);
+
+	int size, rank;
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+
 	int M = 1024, N = 1024, K = 1024;
 	float *A, *B, *C;
 	A = (float *)malloc(M * K * sizeof(float));
 	B = (float *)malloc(K * N * sizeof(float));
 	C = (float *)malloc(M * N * sizeof(float));
 	
-	initMat<float>(A, M, K);
-	//printMat<float>(A, M, K);
-	initMat<float>(B, K, N);
-	//printMat<float>(B, K, N);
-	transposeMat<float>(&B, K, N);
-	//printMat<float>(B, K, N);
+	int elements_per_proc = M * K / size;
+	float *recv_buffer = (float *)malloc(elements_per_proc * sizeof(float));
+	float *C_frag = (float *)malloc(elements_per_proc * sizeof(float));
+
+	if (rank == 0) {
+		initMat<float>(A, M, K);
+		//printMat<float>(A, M, K);
+		initMat<float>(B, K, N);
+		//printMat<float>(B, K, N);
+		transposeMat<float>(&B, K, N);
+		//printMat<float>(B, K, N);
+	}
+	auto mpi_start = MPI_Wtime()
 	auto start = std::chrono::high_resolution_clock::now();
-	matMul<float>(A, B, C, M, N, K);
+	// Scatter matrix A among processes
+	MPI_Scatter(A, elements_per_proc, MPI_FLOAT,
+			recv_buffer, elements_per_proc, MPI_FLOAT, 0, MPI_COMM_WORLD);
+	// Broadcast matrix B to processes
+	MPI_Bcast(B, K * N, MPI_FLOAT, 0, MPI_COMM_WORLD);
+
+	MPI_Barrier(MPI_COMM_WORLD);
+	matMul<float>(recv_buffer, B, C_frag, M/size, N, K);
+	// gather results from processes into matrix C
+	MPI_Gather(C_frag, elements_per_proc, MPI_FLOAT,
+			C, elements_per_proc, MPI_FLOAT, 0, MPI_COMM_WORLD)
+	MPI_Barrier(MPI_COMM_WORLD);
 	auto end = std::chrono::high_resolution_clock::now();
+	auto mpi_end = MPI_Wtime();
 	//printMat<float>(C, M, N);
-	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-	std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
+	MPI_Finalize();
+	auto elapsed_time = mpi_end - mpi_start;
+    // Only rank 0 prints the timing results
+    if (world_rank == 0) {
+        printf("Time taken for Parallel matrix multiplication: %f seconds\n", elapsed_time);
+		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+		std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
+	}
 	return 0;
 }
