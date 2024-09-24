@@ -149,7 +149,7 @@ int main() {
 		transposeMat<float>(&B, K, N);
 		//printMat<float>(B, K, N);
 	}
-	auto mpi_start = MPI_Wtime()
+	auto mpi_start = MPI_Wtime();
 	auto start = std::chrono::high_resolution_clock::now();
 	// Scatter matrix A among processes
 	MPI_Scatter(A, elements_per_proc, MPI_FLOAT,
@@ -161,18 +161,15 @@ int main() {
 	matMul<float>(recv_buffer, B, C_frag, M/size, N, K);
 	// gather results from processes into matrix C
 	MPI_Gather(C_frag, elements_per_proc, MPI_FLOAT,
-			C, elements_per_proc, MPI_FLOAT, 0, MPI_COMM_WORLD)
+			C, elements_per_proc, MPI_FLOAT, 0, MPI_COMM_WORLD);
 	MPI_Barrier(MPI_COMM_WORLD);
-	auto end = std::chrono::high_resolution_clock::now();
 	auto mpi_end = MPI_Wtime();
 	//printMat<float>(C, M, N);
 	MPI_Finalize();
 	auto elapsed_time = mpi_end - mpi_start;
     // Only rank 0 prints the timing results
-    if (world_rank == 0) {
+    if (rank == 0) {
         printf("Time taken for Parallel matrix multiplication: %f seconds\n", elapsed_time);
-		auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-		std::cout << "Time taken: " << duration.count() << " milliseconds" << std::endl;
 	}
 	return 0;
 }
