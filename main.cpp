@@ -49,77 +49,89 @@ void transposeMat(T **mat, int rows, int cols) {
 
 template<typename T>
 void matMul(T *matA, T *matB, T *matC, int M, int N, int K) {
-	int i, j, k;
+	int tile_size = 64;
+	int i, j, k, ii, jj, kk;
+	int i_tile_end, j_tile_end, k_tile_end
 
+	for (ii = 0; ii < M; ii += tile_size) {
+		i_tile_end = std::min(M, ii + tile_size);
+		for (jj = 0; jj < N; jj += tile_size) {
+			j_tile_end = std::min(N, jj + tile_size);
+			for (kk = 0; kk < K; kk += tile_size) {
+				k_tile_end = std::min(K, kk + tile_size);
+				// unroll outer loops
 #pragma omp parallel for collapse(2)
-	for (i = 0; i < M; i += 4) {
-		for (j = 0; j < N; j += 4) {
-			float32x4_t c00 = vdupq_n_f32(0.0f);
-			float32x4_t c01 = vdupq_n_f32(0.0f);
-			float32x4_t c02 = vdupq_n_f32(0.0f);
-			float32x4_t c03 = vdupq_n_f32(0.0f);
-			float32x4_t c10 = vdupq_n_f32(0.0f);
-			float32x4_t c11 = vdupq_n_f32(0.0f);
-			float32x4_t c12 = vdupq_n_f32(0.0f);
-			float32x4_t c13 = vdupq_n_f32(0.0f);
-			float32x4_t c20 = vdupq_n_f32(0.0f);
-			float32x4_t c21 = vdupq_n_f32(0.0f);
-			float32x4_t c22 = vdupq_n_f32(0.0f);
-			float32x4_t c23 = vdupq_n_f32(0.0f);
-			float32x4_t c30 = vdupq_n_f32(0.0f);
-			float32x4_t c31 = vdupq_n_f32(0.0f);
-			float32x4_t c32 = vdupq_n_f32(0.0f);
-			float32x4_t c33 = vdupq_n_f32(0.0f);
-			for (k = 0; k < K; k += 4) {
-				float32x4_t b0 = vld1q_f32(matB + (j + 0) * K + k);
-				float32x4_t b1 = vld1q_f32(matB + (j + 0) * K + k);
-				float32x4_t b2 = vld1q_f32(matB + (j + 0) * K + k);
-				float32x4_t b3 = vld1q_f32(matB + (j + 0) * K + k);
+				for (i = ii; i < i_tile_end; i += 4) {
+					for (j = jj; j < j_tile_end; j += 4) {
+						float32x4_t c00 = vdupq_n_f32(0.0f);
+						float32x4_t c01 = vdupq_n_f32(0.0f);
+						float32x4_t c02 = vdupq_n_f32(0.0f);
+						float32x4_t c03 = vdupq_n_f32(0.0f);
+						float32x4_t c10 = vdupq_n_f32(0.0f);
+						float32x4_t c11 = vdupq_n_f32(0.0f);
+						float32x4_t c12 = vdupq_n_f32(0.0f);
+						float32x4_t c13 = vdupq_n_f32(0.0f);
+						float32x4_t c20 = vdupq_n_f32(0.0f);
+						float32x4_t c21 = vdupq_n_f32(0.0f);
+						float32x4_t c22 = vdupq_n_f32(0.0f);
+						float32x4_t c23 = vdupq_n_f32(0.0f);
+						float32x4_t c30 = vdupq_n_f32(0.0f);
+						float32x4_t c31 = vdupq_n_f32(0.0f);
+						float32x4_t c32 = vdupq_n_f32(0.0f);
+						float32x4_t c33 = vdupq_n_f32(0.0f);
+						for (k = kk; k + 3 < k_tile_end; k += 4) {
+							float32x4_t b0 = vld1q_f32(matB + (j + 0) * K + k);
+							float32x4_t b1 = vld1q_f32(matB + (j + 0) * K + k);
+							float32x4_t b2 = vld1q_f32(matB + (j + 0) * K + k);
+							float32x4_t b3 = vld1q_f32(matB + (j + 0) * K + k);
 
-				float32x4_t a0 = vld1q_f32(matA + (i + 0) * K + k);
-				c00 = vfmaq_f32(a0, b0, c00);
-				c01 = vfmaq_f32(a0, b1, c01);
-				c02 = vfmaq_f32(a0, b2, c02);
-				c03 = vfmaq_f32(a0, b3, c03);
+							float32x4_t a0 = vld1q_f32(matA + (i + 0) * K + k);
+							c00 = vfmaq_f32(a0, b0, c00);
+							c01 = vfmaq_f32(a0, b1, c01);
+							c02 = vfmaq_f32(a0, b2, c02);
+							c03 = vfmaq_f32(a0, b3, c03);
 
-				float32x4_t a1 = vld1q_f32(matA + (i + 1) * K + k);
-				c10 = vfmaq_f32(a1, b0, c10);
-				c11 = vfmaq_f32(a1, b1, c11);
-				c12 = vfmaq_f32(a1, b2, c12);
-				c13 = vfmaq_f32(a1, b3, c13);
+							float32x4_t a1 = vld1q_f32(matA + (i + 1) * K + k);
+							c10 = vfmaq_f32(a1, b0, c10);
+							c11 = vfmaq_f32(a1, b1, c11);
+							c12 = vfmaq_f32(a1, b2, c12);
+							c13 = vfmaq_f32(a1, b3, c13);
 
-				float32x4_t a2 = vld1q_f32(matA + (i + 2) * K + k);
-				c20 = vfmaq_f32(a2, b0, c20);
-				c21 = vfmaq_f32(a2, b1, c21);
-				c22 = vfmaq_f32(a2, b2, c22);
-				c23 = vfmaq_f32(a2, b3, c23);
+							float32x4_t a2 = vld1q_f32(matA + (i + 2) * K + k);
+							c20 = vfmaq_f32(a2, b0, c20);
+							c21 = vfmaq_f32(a2, b1, c21);
+							c22 = vfmaq_f32(a2, b2, c22);
+							c23 = vfmaq_f32(a2, b3, c23);
 
-				float32x4_t a3 = vld1q_f32(matA + (i + 3) * K + k);
-				c20 = vfmaq_f32(a3, b0, c30);
-				c21 = vfmaq_f32(a3, b1, c31);
-				c22 = vfmaq_f32(a3, b2, c32);
-				c23 = vfmaq_f32(a3, b3, c33);
+							float32x4_t a3 = vld1q_f32(matA + (i + 3) * K + k);
+							c20 = vfmaq_f32(a3, b0, c30);
+							c21 = vfmaq_f32(a3, b1, c31);
+							c22 = vfmaq_f32(a3, b2, c32);
+							c23 = vfmaq_f32(a3, b3, c33);
+						}
+					// Store the values to matC
+					matC[(i + 0) * N + j + 0] = vaddvq_f32(c00);
+					matC[(i + 0) * N + j + 1] = vaddvq_f32(c01);
+					matC[(i + 0) * N + j + 2] = vaddvq_f32(c02);
+					matC[(i + 0) * N + j + 3] = vaddvq_f32(c03);
+
+					matC[(i + 1) * N + j + 0] = vaddvq_f32(c10);
+					matC[(i + 1) * N + j + 1] = vaddvq_f32(c11);
+					matC[(i + 1) * N + j + 2] = vaddvq_f32(c12);
+					matC[(i + 1) * N + j + 3] = vaddvq_f32(c13);
+
+					matC[(i + 2) * N + j + 0] = vaddvq_f32(c20);
+					matC[(i + 2) * N + j + 1] = vaddvq_f32(c21);
+					matC[(i + 2) * N + j + 2] = vaddvq_f32(c22);
+					matC[(i + 2) * N + j + 3] = vaddvq_f32(c23);
+
+					matC[(i + 3) * N + j + 0] = vaddvq_f32(c30);
+					matC[(i + 3) * N + j + 1] = vaddvq_f32(c31);
+					matC[(i + 3) * N + j + 2] = vaddvq_f32(c32);
+					matC[(i + 3) * N + j + 3] = vaddvq_f32(c33);
+					}
+				}
 			}
-		// Store the values to matC
-		matC[(i + 0) * N + j + 0] = vaddvq_f32(c00);
-		matC[(i + 0) * N + j + 1] = vaddvq_f32(c01);
-		matC[(i + 0) * N + j + 2] = vaddvq_f32(c02);
-		matC[(i + 0) * N + j + 3] = vaddvq_f32(c03);
-
-		matC[(i + 1) * N + j + 0] = vaddvq_f32(c10);
-		matC[(i + 1) * N + j + 1] = vaddvq_f32(c11);
-		matC[(i + 1) * N + j + 2] = vaddvq_f32(c12);
-		matC[(i + 1) * N + j + 3] = vaddvq_f32(c13);
-
-		matC[(i + 2) * N + j + 0] = vaddvq_f32(c20);
-		matC[(i + 2) * N + j + 1] = vaddvq_f32(c21);
-		matC[(i + 2) * N + j + 2] = vaddvq_f32(c22);
-		matC[(i + 2) * N + j + 3] = vaddvq_f32(c23);
-
-		matC[(i + 3) * N + j + 0] = vaddvq_f32(c30);
-		matC[(i + 3) * N + j + 1] = vaddvq_f32(c31);
-		matC[(i + 3) * N + j + 2] = vaddvq_f32(c32);
-		matC[(i + 3) * N + j + 3] = vaddvq_f32(c33);
 		}
 	}
 }
